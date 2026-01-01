@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ink Studio Pro - Minimal Edition</title>
+    <title>Ink Studio Pro - Multi-Brush Edition</title>
     <style>
         :root {
             /* 3가지 메인 톤 설정 */
@@ -34,7 +34,7 @@
             display: flex;
             flex-direction: column;
             padding: 40px 24px;
-            gap: 32px;
+            gap: 28px; /* 그룹 간 간격 조절 */
             z-index: 10;
         }
 
@@ -53,9 +53,10 @@
             line-height: 1.8;
             border-top: 1px solid var(--border);
             padding-top: 20px;
+            margin-top: 10px; /* 위에 있는 요소들과 간격 조절 */
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 12px; }
+        .control-group { display: flex; flex-direction: column; gap: 10px; }
         label { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
         /* 모든 버튼 디자인 통일 (알록달록함 제거) */
@@ -69,6 +70,10 @@
             background: rgba(255, 255, 255, 0.03);
             color: var(--text-main);
             font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         button:hover { background: rgba(255, 255, 255, 0.08); }
@@ -78,10 +83,15 @@
             background: var(--tone-3); 
             border-color: var(--tone-3);
             color: white;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
         }
 
         .btn-action {
             margin-top: 4px;
+        }
+        .btn-action.clear {
+            border-color: rgba(239, 68, 68, 0.3); 
+            color: #ef4444;
         }
 
         /* 메인 콘텐츠 영역 */
@@ -124,6 +134,7 @@
             opacity: 0;
             transition: opacity 0.2s ease;
             z-index: 20;
+            background: rgba(99, 102, 241, 0.2); /* 인디케이터에 약간의 채색 추가 */
         }
 
         /* 입력 요소 정돈 */
@@ -153,15 +164,18 @@
         
         <div class="control-group">
             <label>Tools</label>
-            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">Brush (B)</button>
-            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">Eraser (E)</button>
+            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">🖌️ Regular (B)</button>
+            <button id="sprayBtn" class="btn-tool" onclick="setTool('spray')">✨ Spray (S)</button>
+            <button id="watercolourBtn" class="btn-tool" onclick="setTool('watercolour')">💧 Water (W)</button>
+            <button id="connectBtn" class="btn-tool" onclick="setTool('connect')">🔗 Connect (C)</button>
+            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">🧽 Eraser (E)</button>
         </div>
 
         <div class="control-group">
             <label>Settings</label>
             <input type="color" id="colorPicker" value="#000000">
-            <div style="display: flex; justify-content: space-between;">
-                <label>Size</label>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="margin-bottom: 0;">Size</label>
                 <span id="sizeValue" style="font-size: 0.75rem; color: var(--tone-3);">40</span>
             </div>
             <input type="range" id="lineWidth" min="10" max="250" value="40" oninput="updateSizeLabel(this.value)">
@@ -171,12 +185,12 @@
             <label>Export</label>
             <button class="btn-action" onclick="downloadImage('png')">Save as PNG</button>
             <button class="btn-action" onclick="downloadImage('jpg')">Save as JPG</button>
-            <button class="btn-action" style="border-color: rgba(239, 68, 68, 0.3); color: #ef4444;" onclick="clearCanvas()">Clear Canvas (M)</button>
+            <button class="btn-action clear" onclick="clearCanvas()">Clear Canvas (M)</button>
         </div>
 
         <div class="hotkey-info">
             [ / ] : Adjust Size<br>
-            B / E : Tool Switch<br>
+            B/S/W/C/E : Tool Switch<br>
             M : Reset Canvas
         </div>
     </aside>
@@ -195,12 +209,16 @@
         const lineWidth = document.getElementById('lineWidth');
         const sizeValue = document.getElementById('sizeValue');
         const brushBtn = document.getElementById('brushBtn');
+        const sprayBtn = document.getElementById('sprayBtn');
+        const watercolourBtn = document.getElementById('watercolourBtn');
+        const connectBtn = document.getElementById('connectBtn');
         const eraserBtn = document.getElementById('eraserBtn');
         const indicator = document.getElementById('size-indicator');
 
         let painting = false;
-        let currentTool = 'brush';
+        let currentTool = 'brush'; // 기본 브러시
         let indicatorTimeout;
+        let lastPos = { x: 0, y: 0 }; // Connect 브러시용
 
         function resizeCanvas() {
             const container = canvas.parentElement;
@@ -212,7 +230,10 @@
             ctx.putImageData(tempImage, 0, 0);
         }
 
-        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            updateSizeLabel(lineWidth.value); // 초기 굵기 표시
+        });
         window.addEventListener('resize', resizeCanvas);
 
         function showIndicator() {
@@ -231,13 +252,17 @@
 
         function setTool(tool) {
             currentTool = tool;
-            brushBtn.classList.toggle('active', tool === 'brush');
-            eraserBtn.classList.toggle('active', tool === 'eraser');
+            // 모든 브러시 버튼 비활성화 후 선택된 브러시만 활성화
+            [brushBtn, sprayBtn, watercolourBtn, connectBtn, eraserBtn].forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${tool}Btn`).classList.add('active');
         }
 
         window.addEventListener('keydown', (e) => {
             const key = e.key.toLowerCase();
             if (key === 'b') setTool('brush');
+            if (key === 's') setTool('spray');
+            if (key === 'w') setTool('watercolour');
+            if (key === 'c') setTool('connect');
             if (key === 'e') setTool('eraser');
             if (key === 'm') clearCanvas();
             if (key === '[') {
@@ -262,30 +287,90 @@
             const pos = getPos(e);
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
+            lastPos = pos; // Connect 브러시를 위해 시작점 저장
             draw(e);
         }
 
         function finishedPosition() {
             painting = false;
-            ctx.beginPath();
+            ctx.beginPath(); // 현재 패스 종료
         }
 
         function draw(e) {
             if (!painting) return;
             const pos = getPos(e);
-            ctx.lineWidth = lineWidth.value;
+
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
+            // 도구별 설정
             if (currentTool === 'eraser') {
                 ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = lineWidth.value;
             } else {
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.strokeStyle = colorPicker.value;
             }
 
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
+            // 각 브러시 타입별 드로잉 로직
+            switch (currentTool) {
+                case 'brush':
+                    ctx.lineWidth = lineWidth.value;
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    ctx.beginPath(); // 새로운 경로 시작 (선 겹침 방지)
+                    ctx.moveTo(pos.x, pos.y);
+                    break;
+                case 'spray':
+                    ctx.globalAlpha = 0.8; // 스프레이는 약간 투명하게
+                    ctx.fillStyle = colorPicker.value;
+                    for (let i = 0; i < 5; i++) { // 한 번에 5개의 점 생성
+                        const offset = (lineWidth.value * 1.5);
+                        const randX = pos.x + (Math.random() - 0.5) * offset;
+                        const randY = pos.y + (Math.random() - 0.5) * offset;
+                        const radius = Math.random() * (lineWidth.value / 3);
+                        ctx.beginPath();
+                        ctx.arc(randX, randY, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1; // 원상 복구
+                    break;
+                case 'watercolour':
+                    // 속도에 따른 투명도 조절
+                    const distance = Math.sqrt(Math.pow(pos.x - lastPos.x, 2) + Math.pow(pos.y - lastPos.y, 2));
+                    const alpha = Math.min(1, Math.max(0.05, 1 - (distance / (lineWidth.value * 2)))); // 거리가 멀수록 투명해짐
+                    ctx.globalAlpha = alpha;
+                    ctx.lineWidth = lineWidth.value * 1.2; // 수채화는 약간 더 굵게
+                    ctx.strokeStyle = colorPicker.value;
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.globalAlpha = 1; // 원상 복구
+                    break;
+                case 'connect':
+                    ctx.lineWidth = 1; // 아주 가는 선
+                    ctx.strokeStyle = colorPicker.value;
+                    ctx.globalAlpha = 0.4; // 약간 투명하게
+                    // 이전 위치부터 현재 위치까지 여러 개의 가는 선 그리기
+                    for (let i = 0; i < 5; i++) {
+                        const offsetX = (Math.random() - 0.5) * (lineWidth.value / 2);
+                        const offsetY = (Math.random() - 0.5) * (lineWidth.value / 2);
+                        ctx.beginPath();
+                        ctx.moveTo(lastPos.x + offsetX, lastPos.y + offsetY);
+                        ctx.lineTo(pos.x - offsetX, pos.y - offsetY);
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1; // 원상 복구
+                    break;
+                case 'eraser':
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    break;
+            }
+            lastPos = pos; // 다음 드로잉을 위해 현재 위치 저장
         }
 
         function clearCanvas() {
