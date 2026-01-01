@@ -3,108 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ink Studio Pro - Modern Edition</title>
+    <title>Ink Studio Pro - Minimal Edition</title>
     <style>
         :root {
-            --bg-color: #0f172a; /* 깊은 다크 블루 배경 */
-            --sidebar-color: rgba(30, 41, 59, 0.7); /* 반투명 사이드바 */
-            --accent-color: #6366f1; /* 세련된 인디고 포인트 */
-            --danger-color: #ef4444;
-            --save-png: #10b981;
-            --save-jpg: #3b82f6;
-            --text-main: #f8fafc;
-            --glass-border: rgba(255, 255, 255, 0.1);
+            /* 3가지 메인 톤 설정 */
+            --tone-1: #0f172a; /* 배경 및 메인 어둠 */
+            --tone-2: #1e293b; /* 사이드바 및 보조 요소 */
+            --tone-3: #6366f1; /* 포인트 컬러 (인디고) */
+            
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
         }
 
         body {
             display: flex;
             height: 100vh;
             margin: 0;
-            background-color: var(--bg-color);
+            background-color: var(--tone-1);
             color: var(--text-main);
             font-family: 'Pretendard', -apple-system, sans-serif;
             overflow: hidden;
         }
 
-        /* 트렌디한 사이드바 디자인 */
+        /* 사이드바: 톤 2 사용 */
         .sidebar {
-            width: 260px;
-            background: var(--sidebar-color);
-            backdrop-filter: blur(20px); /* 유리 효과 */
-            border-right: 1px solid var(--glass-border);
+            width: 250px;
+            background: var(--tone-2);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 30px 20px;
-            gap: 24px;
+            padding: 40px 24px;
+            gap: 32px;
             z-index: 10;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            text-align: center;
             margin-bottom: 10px;
         }
 
         .hotkey-info {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 12px;
-            border-radius: 12px;
-            line-height: 1.6;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            line-height: 1.8;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 10px; }
-        label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; }
+        .control-group { display: flex; flex-direction: column; gap: 12px; }
+        label { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* 버튼 디자인 업데이트 */
+        /* 모든 버튼 디자인 통일 (알록달록함 제거) */
         button {
             padding: 12px;
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            font-size: 0.85rem;
         }
 
-        button:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
-        button:active { transform: scale(0.98); }
+        button:hover { background: rgba(255, 255, 255, 0.08); }
         
+        /* 포인트 컬러 (톤 3) 사용 */
         .btn-tool.active { 
-            background: var(--accent-color); 
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-            border-color: transparent;
+            background: var(--tone-3); 
+            border-color: var(--tone-3);
+            color: white;
         }
 
-        .btn-png { background: var(--save-png); border: none; }
-        .btn-jpg { background: var(--save-jpg); border: none; }
-        .btn-clear { background: var(--danger-color); border: none; }
+        .btn-action {
+            margin-top: 4px;
+        }
 
-        /* 메인 캔버스 영역 */
+        /* 메인 콘텐츠 영역 */
         .main-content {
             flex: 1;
             padding: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
+            background-color: var(--tone-1);
         }
 
         .canvas-container {
             width: 100%;
             height: 100%;
             background: #ffffff;
-            border-radius: 30px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            filter: contrast(40); /* 잉크 효과 상시 적용 */
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
+            filter: contrast(45); /* 잉크 효과 */
             position: relative;
         }
 
@@ -115,39 +112,37 @@
             touch-action: none;
         }
 
-        /* 크기 인디케이터 디자인 개선 */
+        /* 브러시 인디케이터 (톤 3 활용) */
         #size-indicator {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            border: 2px solid var(--accent-color);
+            border: 1px solid var(--tone-3);
             border-radius: 50%;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.3s ease;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            transition: opacity 0.2s ease;
             z-index: 20;
         }
 
-        .info-text { position: absolute; bottom: 20px; color: #64748b; font-size: 0.85rem; }
-
-        /* 컬러피커 스타일링 */
+        /* 입력 요소 정돈 */
         input[type="color"] {
             -webkit-appearance: none;
             width: 100%;
-            height: 45px;
+            height: 35px;
             border: none;
-            border-radius: 12px;
+            border-radius: 6px;
             cursor: pointer;
-            background: none;
+            background: var(--tone-1);
+            padding: 0;
         }
-        input[type="color"]::-webkit-color-swatch { border: 2px solid var(--glass-border); border-radius: 12px; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 6px; }
 
-        /* 슬라이더 스타일링 */
         input[type="range"] {
             width: 100%;
-            accent-color: var(--accent-color);
+            accent-color: var(--tone-3);
+            background: transparent;
         }
     </style>
 </head>
@@ -156,38 +151,41 @@
     <aside class="sidebar">
         <div class="logo">INK STUDIO</div>
         
-        <div class="hotkey-info">
-            B: 브러시 | E: 지우개<br>
-            [: 크기 - | ]: 크기 +<br>
-            <strong>M: 전체 삭제</strong>
-        </div>
-        
         <div class="control-group">
-            <label>TOOLS</label>
-            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">🖌️ Brush</button>
-            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">🧽 Eraser</button>
+            <label>Tools</label>
+            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">Brush (B)</button>
+            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">Eraser (E)</button>
         </div>
 
         <div class="control-group">
-            <label>COLOR & SIZE</label>
+            <label>Settings</label>
             <input type="color" id="colorPicker" value="#000000">
-            <label id="sizeLabel">Size: 40px</label>
+            <div style="display: flex; justify-content: space-between;">
+                <label>Size</label>
+                <span id="sizeValue" style="font-size: 0.75rem; color: var(--tone-3);">40</span>
+            </div>
             <input type="range" id="lineWidth" min="10" max="250" value="40" oninput="updateSizeLabel(this.value)">
         </div>
 
         <div class="control-group" style="margin-top: auto;">
-            <button class="btn-png" onclick="downloadImage('png')">Save PNG</button>
-            <button class="btn-jpg" onclick="downloadImage('jpg')">Save JPG</button>
-            <button class="btn-clear" onclick="clearCanvas()">Clear All (M)</button>
+            <label>Export</label>
+            <button class="btn-action" onclick="downloadImage('png')">Save as PNG</button>
+            <button class="btn-action" onclick="downloadImage('jpg')">Save as JPG</button>
+            <button class="btn-action" style="border-color: rgba(239, 68, 68, 0.3); color: #ef4444;" onclick="clearCanvas()">Clear Canvas (M)</button>
+        </div>
+
+        <div class="hotkey-info">
+            [ / ] : Adjust Size<br>
+            B / E : Tool Switch<br>
+            M : Reset Canvas
         </div>
     </aside>
 
     <main class="main-content">
-        <div class="canvas-container" id="container">
+        <div class="canvas-container">
             <canvas id="paintCanvas"></canvas>
             <div id="size-indicator"></div>
         </div>
-        <div class="info-text">단축키 M을 눌러 캔버스를 빠르게 비울 수 있습니다.</div>
     </main>
 
     <script>
@@ -195,7 +193,7 @@
         const ctx = canvas.getContext('2d');
         const colorPicker = document.getElementById('colorPicker');
         const lineWidth = document.getElementById('lineWidth');
-        const sizeLabel = document.getElementById('sizeLabel');
+        const sizeValue = document.getElementById('sizeValue');
         const brushBtn = document.getElementById('brushBtn');
         const eraserBtn = document.getElementById('eraserBtn');
         const indicator = document.getElementById('size-indicator');
@@ -206,7 +204,6 @@
 
         function resizeCanvas() {
             const container = canvas.parentElement;
-            // 현재 내용을 임시 저장하여 캔버스 크기 변경 시 유지
             const tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
@@ -224,11 +221,11 @@
             indicator.style.height = size + 'px';
             indicator.style.opacity = '1';
             clearTimeout(indicatorTimeout);
-            indicatorTimeout = setTimeout(() => { indicator.style.opacity = '0'; }, 800);
+            indicatorTimeout = setTimeout(() => { indicator.style.opacity = '0'; }, 600);
         }
 
         function updateSizeLabel(val) {
-            sizeLabel.innerText = `Size: ${val}px`;
+            sizeValue.innerText = val;
             showIndicator();
         }
 
@@ -238,20 +235,17 @@
             eraserBtn.classList.toggle('active', tool === 'eraser');
         }
 
-        // --- 단축키 설정 ---
         window.addEventListener('keydown', (e) => {
-            const step = 10;
             const key = e.key.toLowerCase();
-            
             if (key === 'b') setTool('brush');
             if (key === 'e') setTool('eraser');
-            if (key === 'm') clearCanvas(); // M 키로 전체 삭제
+            if (key === 'm') clearCanvas();
             if (key === '[') {
-                lineWidth.value = Math.max(10, parseInt(lineWidth.value) - step);
+                lineWidth.value = Math.max(10, parseInt(lineWidth.value) - 10);
                 updateSizeLabel(lineWidth.value);
             }
             if (key === ']') {
-                lineWidth.value = Math.min(250, parseInt(lineWidth.value) + step);
+                lineWidth.value = Math.min(250, parseInt(lineWidth.value) + 10);
                 updateSizeLabel(lineWidth.value);
             }
         });
@@ -295,7 +289,7 @@
         }
 
         function clearCanvas() {
-            if(confirm("모든 그림을 삭제하시겠습니까?")) {
+            if(confirm("Canvas를 비우시겠습니까?")) {
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "white";
@@ -305,7 +299,7 @@
 
         function downloadImage(format) {
             const link = document.createElement('a');
-            link.download = `drawing-${Date.now()}.${format}`;
+            link.download = `ink-export-${Date.now()}.${format}`;
             link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 0.9);
             link.click();
         }
@@ -313,7 +307,6 @@
         canvas.addEventListener('mousedown', startPosition);
         window.addEventListener('mouseup', finishedPosition);
         canvas.addEventListener('mousemove', draw);
-        
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
         canvas.addEventListener('touchend', finishedPosition);
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
