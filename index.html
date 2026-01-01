@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Ink Shrinking Canvas Pro</title>
+    <title>Ink Studio Pro - Enhanced Ink Effect</title>
     <style>
         :root {
             --bg-color: #e9ecef;
@@ -22,7 +22,6 @@
             overflow: hidden;
         }
 
-        /* 좌측 사이드바 스타일 */
         .sidebar {
             width: 240px;
             background: var(--sidebar-color);
@@ -34,25 +33,12 @@
             gap: 20px;
         }
 
-        .sidebar h2 {
-            font-size: 1.2rem;
-            margin: 0 0 10px 0;
-            color: #333;
-        }
+        .sidebar h2 { font-size: 1.2rem; margin: 0 0 5px 0; color: #333; }
+        .hotkey-info { font-size: 0.75rem; color: #888; margin-bottom: 10px; line-height: 1.4; }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.85rem; font-weight: bold; color: #666; }
 
-        label {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #666;
-        }
-
-        /* 버튼 공통 스타일 */
         button {
             padding: 12px;
             border: none;
@@ -68,28 +54,26 @@
         button:hover { opacity: 0.9; transform: scale(1.02); }
         button:active { transform: scale(0.98); }
         
-        .active-tool {
-            outline: 3px solid #ffbc00;
-            box-shadow: 0 0 10px rgba(255,188,0,0.5);
-        }
-
         .btn-shrink { background: #57606f; }
+        /* 효과 활성화 시 버튼 색상 변경 */
+        .btn-shrink.active { background: #ffbc00; color: #000; }
+        
         .btn-png { background: var(--save-png); }
         .btn-jpg { background: var(--save-jpg); }
         .btn-clear { background: var(--danger-color); }
         .btn-tool { background: #f1f2f6; color: #333; }
-        .btn-tool.active { background: #333; color: white; }
+        .btn-tool.active { background: #333; color: white; border: 2px solid #ffbc00; }
 
-        /* 메인 캔버스 영역 */
         .main-content {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px;
+            padding: 30px;
             position: relative;
         }
 
+        /* 잉크 효과의 핵심 컨테이너 */
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -97,50 +81,53 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-            filter: contrast(20) white; /* 메타볼 효과 핵심 */
-            background-color: white;
+            /* 대비(Contrast)를 대폭 높여 잉크처럼 끈적하게 만듦 */
+            filter: contrast(50) white; 
+            display: flex;
         }
 
         canvas {
-            display: block;
+            flex: 1;
             background: white;
-            filter: blur(4px);
-            transition: filter 0.5s ease;
+            /* 기본 블러를 낮춰서 평소엔 선명하게 */
+            filter: blur(2px);
+            transition: filter 0.3s ease;
             touch-action: none;
         }
 
+        /* 잉크 효과(Shrinking) 모드: 블러를 높이면 대비 필터에 의해 선이 둥글게 수축함 */
         canvas.ink-mode {
-            filter: blur(10px);
+            filter: blur(12px);
         }
 
-        .info-text {
-            position: absolute;
-            bottom: 15px;
-            color: #999;
-            font-size: 0.8rem;
-        }
+        .info-text { position: absolute; bottom: 15px; color: #999; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
         <h2>🎨 Ink Studio</h2>
+        <div class="hotkey-info">
+            단축키:<br>
+            B: 브러시 | E: 지우개<br>
+            [: 크기 - | ]: 크기 +
+        </div>
         
         <div class="control-group">
-            <label>도구 선택</label>
+            <label>도구 (B / E)</label>
             <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">🖌️ 브러시</button>
             <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">🧽 지우개</button>
         </div>
 
         <div class="control-group">
             <label>설정</label>
-            <input type="color" id="colorPicker" value="#000000" style="width:100%; height:40px; border:none; border-radius:8px;">
-            <label>굵기</label>
-            <input type="range" id="lineWidth" min="5" max="80" value="25">
+            <input type="color" id="colorPicker" value="#000000" style="width:100%; height:40px; border:none; border-radius:8px; cursor:pointer;">
+            <label id="sizeLabel">굵기: 30</label>
+            <input type="range" id="lineWidth" min="5" max="150" value="30" oninput="updateSizeLabel(this.value)">
         </div>
 
         <div class="control-group" style="margin-top: auto;">
-            <button class="btn-shrink" onclick="toggleInk()">잉크 효과 토글</button>
+            <button id="shrinkBtn" class="btn-shrink" onclick="toggleInk()">잉크 효과 OFF</button>
             <button class="btn-png" onclick="downloadImage('png')">PNG로 저장</button>
             <button class="btn-jpg" onclick="downloadImage('jpg')">JPG로 저장</button>
             <button class="btn-clear" onclick="clearCanvas()">전체 삭제</button>
@@ -151,7 +138,7 @@
         <div class="canvas-container">
             <canvas id="paintCanvas"></canvas>
         </div>
-        <div class="info-text">작업 영역이 자동으로 확장되었습니다. 마우스로 자유롭게 그리세요.</div>
+        <div class="info-text">잉크 효과를 켜고 굵은 선을 그려보세요. 선들이 서로 엉겨 붙습니다!</div>
     </main>
 
     <script>
@@ -159,24 +146,28 @@
         const ctx = canvas.getContext('2d');
         const colorPicker = document.getElementById('colorPicker');
         const lineWidth = document.getElementById('lineWidth');
+        const sizeLabel = document.getElementById('sizeLabel');
         const brushBtn = document.getElementById('brushBtn');
         const eraserBtn = document.getElementById('eraserBtn');
+        const shrinkBtn = document.getElementById('shrinkBtn');
 
         let painting = false;
-        let currentTool = 'brush'; // 'brush' or 'eraser'
+        let currentTool = 'brush';
 
-        // 캔버스 크기를 부모 컨테이너에 맞게 조정
         function resizeCanvas() {
             const container = canvas.parentElement;
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
-            // 초기 배경을 흰색으로 채움 (JPG 저장 시 검게 변하는 현상 방지)
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         window.addEventListener('load', resizeCanvas);
         window.addEventListener('resize', resizeCanvas);
+
+        function updateSizeLabel(val) {
+            sizeLabel.innerText = `굵기: ${val}`;
+        }
 
         function setTool(tool) {
             currentTool = tool;
@@ -188,6 +179,20 @@
                 brushBtn.classList.remove('active');
             }
         }
+
+        window.addEventListener('keydown', (e) => {
+            const step = 5;
+            if (e.key.toLowerCase() === 'b') setTool('brush');
+            if (e.key.toLowerCase() === 'e') setTool('eraser');
+            if (e.key === '[') {
+                lineWidth.value = Math.max(5, parseInt(lineWidth.value) - step);
+                updateSizeLabel(lineWidth.value);
+            }
+            if (e.key === ']') {
+                lineWidth.value = Math.min(150, parseInt(lineWidth.value) + step);
+                updateSizeLabel(lineWidth.value);
+            }
+        });
 
         function startPosition(e) {
             painting = true;
@@ -203,17 +208,20 @@
             if (!painting) return;
 
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
 
             ctx.lineWidth = lineWidth.value;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
             if (currentTool === 'eraser') {
-                ctx.globalCompositeOperation = 'destination-out'; // 지우개 모드
+                ctx.globalCompositeOperation = 'destination-out';
             } else {
-                ctx.globalCompositeOperation = 'source-over'; // 일반 브러시
+                ctx.globalCompositeOperation = 'source-over';
                 ctx.strokeStyle = colorPicker.value;
             }
 
@@ -224,24 +232,29 @@
         }
 
         function clearCanvas() {
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if(confirm("정말 전체 삭제하시겠습니까?")) {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
         }
 
         function toggleInk() {
             canvas.classList.toggle('ink-mode');
+            const isActive = canvas.classList.contains('ink-mode');
+            shrinkBtn.innerText = isActive ? "잉크 효과 ON" : "잉크 효과 OFF";
+            shrinkBtn.classList.toggle('active', isActive);
         }
 
         function downloadImage(format) {
+            // 저장 시에는 필터가 적용된 상태의 데이터가 필요할 수 있으나, 
+            // 기본적으로 브라우저 download는 캔버스 원본 데이터를 가져옵니다.
             const link = document.createElement('a');
             if (format === 'png') {
-                link.download = 'ink-drawing.png';
+                link.download = 'ink-art.png';
                 link.href = canvas.toDataURL('image/png');
             } else {
-                // JPG는 투명도를 지원하지 않으므로 배경 처리가 필요할 수 있음
-                // 현재 코드에서는 배경을 흰색으로 초기화하여 안전함
-                link.download = 'ink-drawing.jpg';
+                link.download = 'ink-art.jpg';
                 link.href = canvas.toDataURL('image/jpeg', 0.9);
             }
             link.click();
@@ -249,18 +262,12 @@
 
         canvas.addEventListener('mousedown', startPosition);
         canvas.addEventListener('mouseup', finishedPosition);
+        window.addEventListener('mouseup', finishedPosition); // 캔버스 밖으로 나가도 멈추게
         canvas.addEventListener('mousemove', draw);
         
-        // 터치 지원 (모바일/태블릿)
-        canvas.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            startPosition(touch);
-        });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
         canvas.addEventListener('touchend', finishedPosition);
-        canvas.addEventListener('touchmove', (e) => {
-            const touch = e.touches[0];
-            draw(touch);
-        });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
     </script>
 </body>
 </html>
