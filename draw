@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Ink Shrinking Canvas</title>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --accent-color: #333;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            background: var(--accent-color);
+            color: white;
+        }
+
+        button:hover { transform: translateY(-2px); opacity: 0.9; }
+        button:active { transform: translateY(0); }
+        .btn-clear { background: #ff4757; }
+        .btn-shrink { background: #2f3542; }
+
+        .canvas-container {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            /* 핵심: 잉크 느낌을 만드는 필터 */
+            filter: contrast(20); 
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+            background: white;
+            /* 잉크가 번지는 듯한 초기 블러 */
+            filter: blur(4px);
+            transition: filter 0.5s ease;
+        }
+
+        /* 쉬링킹(잉크화) 효과 적용 시 */
+        canvas.ink-mode {
+            filter: blur(10px);
+        }
+
+        .info {
+            margin-top: 15px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <input type="color" id="colorPicker" value="#000000">
+        <input type="range" id="lineWidth" min="5" max="50" value="20">
+        <button class="btn-shrink" onclick="toggleInk()">잉크 효과(Shrink)</button>
+        <button onclick="downloadImage()">저장</button>
+        <button class="btn-clear" onclick="clearCanvas()">전체 삭제</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="paintCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <p class="info">마우스로 그림을 그리고 '잉크 효과' 버튼을 눌러보세요!</p>
+
+    <script>
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const lineWidth = document.getElementById('lineWidth');
+
+        let painting = false;
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function finishedPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+
+            // 잉크 느낌을 위해 선의 끝을 둥글게 설정
+            ctx.lineWidth = lineWidth.value;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = colorPicker.value;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function toggleInk() {
+            // 클래스를 토글하여 블러 값을 높이면 
+            // 컨테이너의 contrast 필터와 결합되어 형태가 수축하며 둥글어짐
+            canvas.classList.toggle('ink-mode');
+            const btn = document.querySelector('.btn-shrink');
+            btn.innerText = canvas.classList.contains('ink-mode') ? "효과 해제" : "잉크 효과(Shrink)";
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'my-ink-art.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', finishedPosition);
+        canvas.addEventListener('mousemove', draw);
+    </script>
+</body>
+</html>
