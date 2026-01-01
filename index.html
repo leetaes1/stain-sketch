@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Ink Studio Pro - Enhanced Ink Effect</title>
+    <title>Ink Studio Pro - Permanent Ink Effect</title>
     <style>
         :root {
             --bg-color: #e9ecef;
@@ -54,10 +54,6 @@
         button:hover { opacity: 0.9; transform: scale(1.02); }
         button:active { transform: scale(0.98); }
         
-        .btn-shrink { background: #57606f; }
-        /* 효과 활성화 시 버튼 색상 변경 */
-        .btn-shrink.active { background: #ffbc00; color: #000; }
-        
         .btn-png { background: var(--save-png); }
         .btn-jpg { background: var(--save-jpg); }
         .btn-clear { background: var(--danger-color); }
@@ -73,7 +69,7 @@
             position: relative;
         }
 
-        /* 잉크 효과의 핵심 컨테이너 */
+        /* [핵심] 상시 잉크 효과 적용 컨테이너 */
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -81,23 +77,18 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-            /* 대비(Contrast)를 대폭 높여 잉크처럼 끈적하게 만듦 */
-            filter: contrast(50) white; 
+            /* 잉크가 엉겨붙게 만드는 고대비 필터 고정 */
+            filter: contrast(40) brightness(1); 
+            background-color: white;
             display: flex;
         }
 
         canvas {
             flex: 1;
             background: white;
-            /* 기본 블러를 낮춰서 평소엔 선명하게 */
-            filter: blur(2px);
-            transition: filter 0.3s ease;
+            /* 실시간 번짐 효과 고정 */
+            filter: blur(8px); 
             touch-action: none;
-        }
-
-        /* 잉크 효과(Shrinking) 모드: 블러를 높이면 대비 필터에 의해 선이 둥글게 수축함 */
-        canvas.ink-mode {
-            filter: blur(12px);
         }
 
         .info-text { position: absolute; bottom: 15px; color: #999; font-size: 0.8rem; }
@@ -122,12 +113,11 @@
         <div class="control-group">
             <label>설정</label>
             <input type="color" id="colorPicker" value="#000000" style="width:100%; height:40px; border:none; border-radius:8px; cursor:pointer;">
-            <label id="sizeLabel">굵기: 30</label>
-            <input type="range" id="lineWidth" min="5" max="150" value="30" oninput="updateSizeLabel(this.value)">
+            <label id="sizeLabel">굵기: 40</label>
+            <input type="range" id="lineWidth" min="10" max="200" value="40" oninput="updateSizeLabel(this.value)">
         </div>
 
         <div class="control-group" style="margin-top: auto;">
-            <button id="shrinkBtn" class="btn-shrink" onclick="toggleInk()">잉크 효과 OFF</button>
             <button class="btn-png" onclick="downloadImage('png')">PNG로 저장</button>
             <button class="btn-jpg" onclick="downloadImage('jpg')">JPG로 저장</button>
             <button class="btn-clear" onclick="clearCanvas()">전체 삭제</button>
@@ -138,7 +128,7 @@
         <div class="canvas-container">
             <canvas id="paintCanvas"></canvas>
         </div>
-        <div class="info-text">잉크 효과를 켜고 굵은 선을 그려보세요. 선들이 서로 엉겨 붙습니다!</div>
+        <div class="info-text">잉크 효과가 상시 적용 중입니다. 굵은 선을 그어 보세요!</div>
     </main>
 
     <script>
@@ -149,17 +139,19 @@
         const sizeLabel = document.getElementById('sizeLabel');
         const brushBtn = document.getElementById('brushBtn');
         const eraserBtn = document.getElementById('eraserBtn');
-        const shrinkBtn = document.getElementById('shrinkBtn');
 
         let painting = false;
         let currentTool = 'brush';
 
         function resizeCanvas() {
             const container = canvas.parentElement;
+            // 캔버스 데이터를 유지하며 크기 조절
+            const tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.putImageData(tempImage, 0, 0);
         }
 
         window.addEventListener('load', resizeCanvas);
@@ -171,31 +163,40 @@
 
         function setTool(tool) {
             currentTool = tool;
-            if (tool === 'brush') {
-                brushBtn.classList.add('active');
-                eraserBtn.classList.remove('active');
-            } else {
-                eraserBtn.classList.add('active');
-                brushBtn.classList.remove('active');
-            }
+            brushBtn.classList.toggle('active', tool === 'brush');
+            eraserBtn.classList.toggle('active', tool === 'eraser');
         }
 
         window.addEventListener('keydown', (e) => {
-            const step = 5;
-            if (e.key.toLowerCase() === 'b') setTool('brush');
-            if (e.key.toLowerCase() === 'e') setTool('eraser');
-            if (e.key === '[') {
-                lineWidth.value = Math.max(5, parseInt(lineWidth.value) - step);
+            const step = 10;
+            const key = e.key.toLowerCase();
+            if (key === 'b') setTool('brush');
+            if (key === 'e') setTool('eraser');
+            if (key === '[') {
+                lineWidth.value = Math.max(10, parseInt(lineWidth.value) - step);
                 updateSizeLabel(lineWidth.value);
             }
-            if (e.key === ']') {
-                lineWidth.value = Math.min(150, parseInt(lineWidth.value) + step);
+            if (key === ']') {
+                lineWidth.value = Math.min(200, parseInt(lineWidth.value) + step);
                 updateSizeLabel(lineWidth.value);
             }
         });
 
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
         function startPosition(e) {
             painting = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
             draw(e);
         }
 
@@ -206,13 +207,7 @@
 
         function draw(e) {
             if (!painting) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
+            const pos = getPos(e);
 
             ctx.lineWidth = lineWidth.value;
             ctx.lineCap = 'round';
@@ -225,44 +220,31 @@
                 ctx.strokeStyle = colorPicker.value;
             }
 
-            ctx.lineTo(x, y);
+            ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
+            // 최적화: 잉크 효과를 위해 의도적으로 작은 점을 찍지 않고 부드러운 선 위주로 처리
         }
 
         function clearCanvas() {
             if(confirm("정말 전체 삭제하시겠습니까?")) {
                 ctx.globalCompositeOperation = 'source-over';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
 
-        function toggleInk() {
-            canvas.classList.toggle('ink-mode');
-            const isActive = canvas.classList.contains('ink-mode');
-            shrinkBtn.innerText = isActive ? "잉크 효과 ON" : "잉크 효과 OFF";
-            shrinkBtn.classList.toggle('active', isActive);
-        }
-
         function downloadImage(format) {
-            // 저장 시에는 필터가 적용된 상태의 데이터가 필요할 수 있으나, 
-            // 기본적으로 브라우저 download는 캔버스 원본 데이터를 가져옵니다.
             const link = document.createElement('a');
-            if (format === 'png') {
-                link.download = 'ink-art.png';
-                link.href = canvas.toDataURL('image/png');
-            } else {
-                link.download = 'ink-art.jpg';
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-            }
+            // 필터가 적용된 상태를 저장하려면 임시 캔버스가 필요할 수 있으나, 
+            // 현재는 원본 소스를 고화질로 저장합니다.
+            link.download = `ink-art-${Date.now()}.${format}`;
+            link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 0.9);
             link.click();
         }
 
         canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mouseup', finishedPosition);
-        window.addEventListener('mouseup', finishedPosition); // 캔버스 밖으로 나가도 멈추게
+        window.addEventListener('mouseup', finishedPosition);
         canvas.addEventListener('mousemove', draw);
         
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
