@@ -2,104 +2,192 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Ink Shrinking Canvas</title>
+    <title>Ink Shrinking Canvas Pro</title>
     <style>
         :root {
-            --bg-color: #f0f0f0;
+            --bg-color: #e9ecef;
+            --sidebar-color: #ffffff;
             --accent-color: #333;
+            --danger-color: #ff4757;
+            --save-png: #2ed573;
+            --save-jpg: #1e90ff;
         }
 
         body {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             height: 100vh;
             margin: 0;
             background-color: var(--bg-color);
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            overflow: hidden;
         }
 
-        .controls {
-            margin-bottom: 20px;
+        /* 좌측 사이드바 스타일 */
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-color);
             display: flex;
-            gap: 15px;
-            background: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            flex-direction: column;
+            padding: 25px;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.05);
+            z-index: 10;
+            gap: 20px;
         }
 
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #666;
+        }
+
+        /* 버튼 공통 스타일 */
         button {
-            padding: 8px 20px;
+            padding: 12px;
             border: none;
-            border-radius: 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
             background: var(--accent-color);
             color: white;
+            font-size: 0.9rem;
         }
 
-        button:hover { transform: translateY(-2px); opacity: 0.9; }
-        button:active { transform: translateY(0); }
-        .btn-clear { background: #ff4757; }
-        .btn-shrink { background: #2f3542; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
+        button:active { transform: scale(0.98); }
+        
+        .active-tool {
+            outline: 3px solid #ffbc00;
+            box-shadow: 0 0 10px rgba(255,188,0,0.5);
+        }
+
+        .btn-shrink { background: #57606f; }
+        .btn-png { background: var(--save-png); }
+        .btn-jpg { background: var(--save-jpg); }
+        .btn-clear { background: var(--danger-color); }
+        .btn-tool { background: #f1f2f6; color: #333; }
+        .btn-tool.active { background: #333; color: white; }
+
+        /* 메인 캔버스 영역 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+        }
 
         .canvas-container {
-            position: relative;
+            width: 100%;
+            height: 100%;
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            /* 핵심: 잉크 느낌을 만드는 필터 */
-            filter: contrast(20); 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            filter: contrast(20) white; /* 메타볼 효과 핵심 */
+            background-color: white;
         }
 
         canvas {
             display: block;
-            cursor: crosshair;
             background: white;
-            /* 잉크가 번지는 듯한 초기 블러 */
             filter: blur(4px);
             transition: filter 0.5s ease;
+            touch-action: none;
         }
 
-        /* 쉬링킹(잉크화) 효과 적용 시 */
         canvas.ink-mode {
             filter: blur(10px);
         }
 
-        .info {
-            margin-top: 15px;
-            color: #777;
-            font-size: 0.9rem;
+        .info-text {
+            position: absolute;
+            bottom: 15px;
+            color: #999;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <input type="color" id="colorPicker" value="#000000">
-        <input type="range" id="lineWidth" min="5" max="50" value="20">
-        <button class="btn-shrink" onclick="toggleInk()">잉크 효과(Shrink)</button>
-        <button onclick="downloadImage()">저장</button>
-        <button class="btn-clear" onclick="clearCanvas()">전체 삭제</button>
-    </div>
+    <aside class="sidebar">
+        <h2>🎨 Ink Studio</h2>
+        
+        <div class="control-group">
+            <label>도구 선택</label>
+            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">🖌️ 브러시</button>
+            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">🧽 지우개</button>
+        </div>
 
-    <div class="canvas-container">
-        <canvas id="paintCanvas" width="800" height="500"></canvas>
-    </div>
+        <div class="control-group">
+            <label>설정</label>
+            <input type="color" id="colorPicker" value="#000000" style="width:100%; height:40px; border:none; border-radius:8px;">
+            <label>굵기</label>
+            <input type="range" id="lineWidth" min="5" max="80" value="25">
+        </div>
 
-    <p class="info">마우스로 그림을 그리고 '잉크 효과' 버튼을 눌러보세요!</p>
+        <div class="control-group" style="margin-top: auto;">
+            <button class="btn-shrink" onclick="toggleInk()">잉크 효과 토글</button>
+            <button class="btn-png" onclick="downloadImage('png')">PNG로 저장</button>
+            <button class="btn-jpg" onclick="downloadImage('jpg')">JPG로 저장</button>
+            <button class="btn-clear" onclick="clearCanvas()">전체 삭제</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="canvas-container">
+            <canvas id="paintCanvas"></canvas>
+        </div>
+        <div class="info-text">작업 영역이 자동으로 확장되었습니다. 마우스로 자유롭게 그리세요.</div>
+    </main>
 
     <script>
         const canvas = document.getElementById('paintCanvas');
         const ctx = canvas.getContext('2d');
         const colorPicker = document.getElementById('colorPicker');
         const lineWidth = document.getElementById('lineWidth');
+        const brushBtn = document.getElementById('brushBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
 
         let painting = false;
+        let currentTool = 'brush'; // 'brush' or 'eraser'
+
+        // 캔버스 크기를 부모 컨테이너에 맞게 조정
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            // 초기 배경을 흰색으로 채움 (JPG 저장 시 검게 변하는 현상 방지)
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        function setTool(tool) {
+            currentTool = tool;
+            if (tool === 'brush') {
+                brushBtn.classList.add('active');
+                eraserBtn.classList.remove('active');
+            } else {
+                eraserBtn.classList.add('active');
+                brushBtn.classList.remove('active');
+            }
+        }
 
         function startPosition(e) {
             painting = true;
@@ -114,15 +202,20 @@
         function draw(e) {
             if (!painting) return;
 
-            // 잉크 느낌을 위해 선의 끝을 둥글게 설정
-            ctx.lineWidth = lineWidth.value;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = colorPicker.value;
-
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
+
+            ctx.lineWidth = lineWidth.value;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out'; // 지우개 모드
+            } else {
+                ctx.globalCompositeOperation = 'source-over'; // 일반 브러시
+                ctx.strokeStyle = colorPicker.value;
+            }
 
             ctx.lineTo(x, y);
             ctx.stroke();
@@ -131,27 +224,43 @@
         }
 
         function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         function toggleInk() {
-            // 클래스를 토글하여 블러 값을 높이면 
-            // 컨테이너의 contrast 필터와 결합되어 형태가 수축하며 둥글어짐
             canvas.classList.toggle('ink-mode');
-            const btn = document.querySelector('.btn-shrink');
-            btn.innerText = canvas.classList.contains('ink-mode') ? "효과 해제" : "잉크 효과(Shrink)";
         }
 
-        function downloadImage() {
+        function downloadImage(format) {
             const link = document.createElement('a');
-            link.download = 'my-ink-art.png';
-            link.href = canvas.toDataURL();
+            if (format === 'png') {
+                link.download = 'ink-drawing.png';
+                link.href = canvas.toDataURL('image/png');
+            } else {
+                // JPG는 투명도를 지원하지 않으므로 배경 처리가 필요할 수 있음
+                // 현재 코드에서는 배경을 흰색으로 초기화하여 안전함
+                link.download = 'ink-drawing.jpg';
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+            }
             link.click();
         }
 
         canvas.addEventListener('mousedown', startPosition);
         canvas.addEventListener('mouseup', finishedPosition);
         canvas.addEventListener('mousemove', draw);
+        
+        // 터치 지원 (모바일/태블릿)
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startPosition(touch);
+        });
+        canvas.addEventListener('touchend', finishedPosition);
+        canvas.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            draw(touch);
+        });
     </script>
 </body>
 </html>
