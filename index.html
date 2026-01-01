@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ink Studio Pro - Smart Filter</title>
+    <title>Ink Studio Pro - Minimal Edition</title>
     <style>
         :root {
-            --tone-1: #0f172a;
-            --tone-2: #1e293b;
-            --tone-3: #6366f1;
+            /* 3가지 메인 톤 설정 */
+            --tone-1: #0f172a; /* 배경 및 메인 어둠 */
+            --tone-2: #1e293b; /* 사이드바 및 보조 요소 */
+            --tone-3: #6366f1; /* 포인트 컬러 (인디고) */
+            
             --text-main: #f1f5f9;
             --text-dim: #94a3b8;
             --border: rgba(255, 255, 255, 0.08);
@@ -24,6 +26,7 @@
             overflow: hidden;
         }
 
+        /* 사이드바: 톤 2 사용 */
         .sidebar {
             width: 250px;
             background: var(--tone-2);
@@ -31,7 +34,7 @@
             display: flex;
             flex-direction: column;
             padding: 40px 24px;
-            gap: 28px;
+            gap: 32px;
             z-index: 10;
         }
 
@@ -44,9 +47,18 @@
             margin-bottom: 10px;
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 10px; }
+        .hotkey-info {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            line-height: 1.8;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .control-group { display: flex; flex-direction: column; gap: 12px; }
         label { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
+        /* 모든 버튼 디자인 통일 (알록달록함 제거) */
         button {
             padding: 12px;
             border: 1px solid var(--border);
@@ -57,21 +69,22 @@
             background: rgba(255, 255, 255, 0.03);
             color: var(--text-main);
             font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         button:hover { background: rgba(255, 255, 255, 0.08); }
         
+        /* 포인트 컬러 (톤 3) 사용 */
         .btn-tool.active { 
             background: var(--tone-3); 
             border-color: var(--tone-3);
             color: white;
-            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
         }
 
+        .btn-action {
+            margin-top: 4px;
+        }
+
+        /* 메인 콘텐츠 영역 */
         .main-content {
             flex: 1;
             padding: 40px;
@@ -81,7 +94,6 @@
             background-color: var(--tone-1);
         }
 
-        /* 잉크 효과 컨테이너 (JS에서 제어) */
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -89,27 +101,18 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
+            filter: contrast(45); /* 잉크 효과 */
             position: relative;
-            transition: filter 0.3s ease;
-        }
-
-        /* [핵심] 레귤러 브러시 전용 필터 스타일 */
-        .ink-effect-on {
-            filter: contrast(45);
         }
 
         canvas {
             display: block;
             background: white;
-            transition: filter 0.3s ease;
+            filter: blur(8px);
             touch-action: none;
         }
 
-        /* [핵심] 레귤러 브러시 전용 블러 스타일 */
-        .blur-on {
-            filter: blur(8px);
-        }
-
+        /* 브러시 인디케이터 (톤 3 활용) */
         #size-indicator {
             position: absolute;
             top: 50%;
@@ -121,9 +124,9 @@
             opacity: 0;
             transition: opacity 0.2s ease;
             z-index: 20;
-            background: rgba(99, 102, 241, 0.1);
         }
 
+        /* 입력 요소 정돈 */
         input[type="color"] {
             -webkit-appearance: none;
             width: 100%;
@@ -141,14 +144,6 @@
             accent-color: var(--tone-3);
             background: transparent;
         }
-
-        .hotkey-info {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            line-height: 1.8;
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -158,17 +153,14 @@
         
         <div class="control-group">
             <label>Tools</label>
-            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">🖌️ Regular (B)</button>
-            <button id="sprayBtn" class="btn-tool" onclick="setTool('spray')">✨ Spray (S)</button>
-            <button id="watercolourBtn" class="btn-tool" onclick="setTool('watercolour')">💧 Water (W)</button>
-            <button id="connectBtn" class="btn-tool" onclick="setTool('connect')">🔗 Connect (C)</button>
-            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">🧽 Eraser (E)</button>
+            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">Brush (B)</button>
+            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">Eraser (E)</button>
         </div>
 
         <div class="control-group">
             <label>Settings</label>
             <input type="color" id="colorPicker" value="#000000">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between;">
                 <label>Size</label>
                 <span id="sizeValue" style="font-size: 0.75rem; color: var(--tone-3);">40</span>
             </div>
@@ -177,178 +169,147 @@
 
         <div class="control-group" style="margin-top: auto;">
             <label>Export</label>
-            <button onclick="downloadImage('png')">Save as PNG</button>
-            <button onclick="downloadImage('jpg')">Save as JPG</button>
-            <button style="color: #ef4444;" onclick="clearCanvas()">Clear (M)</button>
+            <button class="btn-action" onclick="downloadImage('png')">Save as PNG</button>
+            <button class="btn-action" onclick="downloadImage('jpg')">Save as JPG</button>
+            <button class="btn-action" style="border-color: rgba(239, 68, 68, 0.3); color: #ef4444;" onclick="clearCanvas()">Clear Canvas (M)</button>
         </div>
 
         <div class="hotkey-info">
-            [ / ] : Size | M : Reset<br>
-            B/S/W/C/E : Switch Tools
+            [ / ] : Adjust Size<br>
+            B / E : Tool Switch<br>
+            M : Reset Canvas
         </div>
     </aside>
 
     <main class="main-content">
-        <div class="canvas-container ink-effect-on" id="canvasContainer">
-            <canvas id="paintCanvas" class="blur-on"></canvas>
+        <div class="canvas-container">
+            <canvas id="paintCanvas"></canvas>
             <div id="size-indicator"></div>
         </div>
     </main>
 
     <script>
         const canvas = document.getElementById('paintCanvas');
-        const container = document.getElementById('canvasContainer');
         const ctx = canvas.getContext('2d');
         const colorPicker = document.getElementById('colorPicker');
         const lineWidth = document.getElementById('lineWidth');
         const sizeValue = document.getElementById('sizeValue');
+        const brushBtn = document.getElementById('brushBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
         const indicator = document.getElementById('size-indicator');
 
         let painting = false;
         let currentTool = 'brush';
-        let lastPos = { x: 0, y: 0 };
         let indicatorTimeout;
 
         function resizeCanvas() {
-            const parent = canvas.parentElement;
-            const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            canvas.width = parent.clientWidth;
-            canvas.height = parent.clientHeight;
+            const container = canvas.parentElement;
+            const tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.putImageData(temp, 0, 0);
+            ctx.putImageData(tempImage, 0, 0);
         }
 
         window.addEventListener('load', resizeCanvas);
         window.addEventListener('resize', resizeCanvas);
 
-        function updateSizeLabel(val) {
-            sizeValue.innerText = val;
-            indicator.style.width = val + 'px';
-            indicator.style.height = val + 'px';
+        function showIndicator() {
+            const size = lineWidth.value;
+            indicator.style.width = size + 'px';
+            indicator.style.height = size + 'px';
             indicator.style.opacity = '1';
             clearTimeout(indicatorTimeout);
             indicatorTimeout = setTimeout(() => { indicator.style.opacity = '0'; }, 600);
         }
 
-        // [핵심] 도구에 따라 필터를 끄고 켜는 함수
+        function updateSizeLabel(val) {
+            sizeValue.innerText = val;
+            showIndicator();
+        }
+
         function setTool(tool) {
             currentTool = tool;
-            
-            // UI 업데이트
-            document.querySelectorAll('.btn-tool').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`${tool}Btn`).classList.add('active');
-
-            // 필터 제어: 레귤러 브러시(brush)일 때만 효과 적용
-            if (tool === 'brush') {
-                container.classList.add('ink-effect-on');
-                canvas.classList.add('blur-on');
-            } else {
-                container.classList.remove('ink-effect-on');
-                canvas.classList.remove('blur-on');
-            }
+            brushBtn.classList.toggle('active', tool === 'brush');
+            eraserBtn.classList.toggle('active', tool === 'eraser');
         }
 
         window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            if (['b','s','w','c','e'].includes(k)) {
-                const map = {b:'brush', s:'spray', w:'watercolour', c:'connect', e:'eraser'};
-                setTool(map[k]);
+            const key = e.key.toLowerCase();
+            if (key === 'b') setTool('brush');
+            if (key === 'e') setTool('eraser');
+            if (key === 'm') clearCanvas();
+            if (key === '[') {
+                lineWidth.value = Math.max(10, parseInt(lineWidth.value) - 10);
+                updateSizeLabel(lineWidth.value);
             }
-            if (k === 'm') clearCanvas();
-            if (k === '[') { lineWidth.value -= 10; updateSizeLabel(lineWidth.value); }
-            if (k === ']') { lineWidth.value = parseInt(lineWidth.value) + 10; updateSizeLabel(lineWidth.value); }
+            if (key === ']') {
+                lineWidth.value = Math.min(250, parseInt(lineWidth.value) + 10);
+                updateSizeLabel(lineWidth.value);
+            }
         });
 
         function getPos(e) {
-            const r = canvas.getBoundingClientRect();
-            const cx = e.clientX || (e.touches && e.touches[0].clientX);
-            const cy = e.clientY || (e.touches && e.touches[0].clientY);
-            return { x: cx - r.left, y: cy - r.top };
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        canvas.addEventListener('mousedown', (e) => { painting = true; lastPos = getPos(e); draw(e); });
-        window.addEventListener('mouseup', () => { painting = false; ctx.beginPath(); });
-        canvas.addEventListener('mousemove', draw);
+        function startPosition(e) {
+            painting = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            draw(e);
+        }
+
+        function finishedPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
 
         function draw(e) {
             if (!painting) return;
             const pos = getPos(e);
+            ctx.lineWidth = lineWidth.value;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
             if (currentTool === 'eraser') {
                 ctx.globalCompositeOperation = 'destination-out';
-                ctx.lineWidth = lineWidth.value;
             } else {
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.strokeStyle = colorPicker.value;
             }
 
-            switch (currentTool) {
-                case 'brush':
-                    ctx.lineWidth = lineWidth.value;
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                    break;
-                case 'spray':
-                    ctx.fillStyle = colorPicker.value;
-                    for (let i = 0; i < 6; i++) {
-                        const off = lineWidth.value * 1.2;
-                        const rx = pos.x + (Math.random() - 0.5) * off;
-                        const ry = pos.y + (Math.random() - 0.5) * off;
-                        ctx.beginPath();
-                        ctx.arc(rx, ry, Math.random() * (lineWidth.value/4), 0, Math.PI*2);
-                        ctx.fill();
-                    }
-                    break;
-                case 'watercolour':
-                    const dist = Math.sqrt(Math.pow(pos.x-lastPos.x,2)+Math.pow(pos.y-lastPos.y,2));
-                    ctx.globalAlpha = Math.min(0.5, 1 - (dist/100));
-                    ctx.lineWidth = lineWidth.value * 1.5;
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                    ctx.globalAlpha = 1;
-                    break;
-                case 'connect':
-                    ctx.lineWidth = 0.5;
-                    ctx.globalAlpha = 0.3;
-                    for (let i = 0; i < 3; i++) {
-                        ctx.beginPath();
-                        ctx.moveTo(lastPos.x + (Math.random()-0.5)*lineWidth.value, lastPos.y + (Math.random()-0.5)*lineWidth.value);
-                        ctx.lineTo(pos.x, pos.y);
-                        ctx.stroke();
-                    }
-                    ctx.globalAlpha = 1;
-                    break;
-                case 'eraser':
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                    break;
-            }
-            lastPos = pos;
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
         }
 
         function clearCanvas() {
-            if(confirm("모든 작업을 삭제할까요?")) {
+            if(confirm("Canvas를 비우시겠습니까?")) {
                 ctx.globalCompositeOperation = 'source-over';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
 
-        function downloadImage(f) {
-            const a = document.createElement('a');
-            a.download = `art-${Date.now()}.${f}`;
-            a.href = canvas.toDataURL(f === 'png' ? 'image/png' : 'image/jpeg');
-            a.click();
+        function downloadImage(format) {
+            const link = document.createElement('a');
+            link.download = `ink-export-${Date.now()}.${format}`;
+            link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 0.9);
+            link.click();
         }
+
+        canvas.addEventListener('mousedown', startPosition);
+        window.addEventListener('mouseup', finishedPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
+        canvas.addEventListener('touchend', finishedPosition);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
     </script>
 </body>
 </html>
