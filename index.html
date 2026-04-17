@@ -3,313 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ink Studio Pro - Minimal Edition</title>
+    <title>HYPE BEAST TYPE TEST</title>
     <style>
+        /* 폰트 및 핵심 컬러 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
+
         :root {
-            /* 3가지 메인 톤 설정 */
-            --tone-1: #0f172a; /* 배경 및 메인 어둠 */
-            --tone-2: #1e293b; /* 사이드바 및 보조 요소 */
-            --tone-3: #6366f1; /* 포인트 컬러 (인디고) */
-            
-            --text-main: #f1f5f9;
-            --text-dim: #94a3b8;
-            --border: rgba(255, 255, 255, 0.08);
+            --hb-blue: #0033FF; /* 패키지 메인 블루 */
+            --hb-bg: #050505;   /* 깊은 블랙 */
+            --hb-text: #F0F0F0; /* 크림 화이트 */
+            --hb-grey: #333333;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
+            background-color: var(--hb-bg);
+            color: var(--hb-text);
+            font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
-            margin: 0;
-            background-color: var(--tone-1);
-            color: var(--text-main);
-            font-family: 'Pretendard', -apple-system, sans-serif;
             overflow: hidden;
         }
 
-        /* 사이드바: 톤 2 사용 */
-        .sidebar {
-            width: 250px;
-            background: var(--tone-2);
-            border-right: 1px solid var(--border);
+        .impact {
+            font-family: 'Impact', sans-serif;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            padding: 60px 30px;
             display: flex;
             flex-direction: column;
-            padding: 40px 24px;
-            gap: 32px;
-            z-index: 10;
+            border-left: 1px solid var(--hb-grey);
+            border-right: 1px solid var(--hb-grey);
         }
 
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: var(--text-main);
-            text-align: center;
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 메인 로고 영역 */
+        .logo-area { margin-bottom: 60px; }
+        .main-title {
+            font-size: 72px;
+            line-height: 0.85;
+            color: var(--hb-blue);
             margin-bottom: 10px;
         }
-
-        .hotkey-info {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            line-height: 1.8;
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
+        .star-graphic {
+            fill: var(--hb-blue);
+            width: 80px;
+            margin-top: 5px;
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 12px; }
-        label { font-size: 0.75rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-
-        /* 모든 버튼 디자인 통일 (알록달록함 제거) */
-        button {
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+        /* 버튼 및 인터랙션 */
+        .btn-option {
+            background: none;
+            border: 1px solid var(--hb-grey);
+            color: var(--hb-text);
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: left;
+            font-size: 15px;
             cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-main);
-            font-size: 0.85rem;
-        }
-
-        button:hover { background: rgba(255, 255, 255, 0.08); }
-        
-        /* 포인트 컬러 (톤 3) 사용 */
-        .btn-tool.active { 
-            background: var(--tone-3); 
-            border-color: var(--tone-3);
-            color: white;
-        }
-
-        .btn-action {
-            margin-top: 4px;
-        }
-
-        /* 메인 콘텐츠 영역 */
-        .main-content {
-            flex: 1;
-            padding: 40px;
+            transition: all 0.2s;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            background-color: var(--tone-1);
         }
 
-        .canvas-container {
-            width: 100%;
-            height: 100%;
-            background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
-            filter: contrast(45); /* 잉크 효과 */
-            position: relative;
+        .btn-option:hover {
+            border-color: var(--hb-blue);
+            background: var(--hb-blue);
         }
 
-        canvas {
-            display: block;
-            background: white;
-            filter: blur(8px);
-            touch-action: none;
-        }
-
-        /* 브러시 인디케이터 (톤 3 활용) */
-        #size-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 1px solid var(--tone-3);
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            z-index: 20;
-        }
-
-        /* 입력 요소 정돈 */
-        input[type="color"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 35px;
+        .btn-main {
+            background: var(--hb-blue);
+            color: white;
             border: none;
-            border-radius: 6px;
+            padding: 25px;
+            font-size: 20px;
             cursor: pointer;
-            background: var(--tone-1);
-            padding: 0;
+            margin-top: auto;
         }
-        input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 6px; }
 
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--tone-3);
-            background: transparent;
+        /* 결과 화면 특화 */
+        .result-card {
+            border: 2px solid var(--hb-blue);
+            padding: 30px;
+            margin: 20px 0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stats-box {
+            background: #111;
+            padding: 20px;
+            font-size: 12px;
+            border-top: 1px solid var(--hb-grey);
+        }
+
+        .stat-bar-container {
+            height: 4px;
+            background: var(--hb-grey);
+            margin: 8px 0 15px 0;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--hb-blue);
         }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="logo">INK STUDIO</div>
+<div id="app">
+    <div id="intro" class="screen active">
+        <div class="logo-area">
+            <h1 class="main-title impact">HYPE<br>BEAST</h1>
+            <svg class="star-graphic" viewBox="0 0 100 20">
+                <polygon points="10,0 12,7 20,7 14,12 16,20 10,15 4,20 6,12 0,7 8,7" />
+                <polygon points="40,0 42,7 50,7 44,12 46,20 40,15 34,20 36,12 30,7 38,7" />
+                <polygon points="70,0 72,7 80,7 74,12 76,20 70,15 64,20 66,12 60,7 68,7" />
+            </svg>
+        </div>
+        <p style="letter-spacing: 2px; font-size: 13px; opacity: 0.7;">CONSUMPTION TYPE TEST</p>
+        <button class="btn-main impact" onclick="nextStep()">START</button>
+    </div>
+
+    <div id="question" class="screen">
+        <p id="q-num" class="impact" style="color: var(--hb-blue); margin-bottom: 10px;">STEP 01</p>
+        <h2 id="q-title" style="font-size: 24px; margin-bottom: 40px; word-break: keep-all;">질문 내용</h2>
+        <div id="options"></div>
+    </div>
+
+    <div id="result" class="screen">
+        <p class="impact" style="font-size: 14px; color: var(--hb-blue);">IDENTITY CONFIRMED</p>
+        <h1 id="res-name" class="impact" style="font-size: 50px; margin: 10px 0;">TYPE</h1>
         
-        <div class="control-group">
-            <label>Tools</label>
-            <button id="brushBtn" class="btn-tool active" onclick="setTool('brush')">Brush (B)</button>
-            <button id="eraserBtn" class="btn-tool" onclick="setTool('eraser')">Eraser (E)</button>
+        <div class="result-card">
+            <p id="res-punch" style="font-size: 18px; font-weight: 900; margin-bottom: 15px; color: var(--hb-blue);"></p>
+            <p id="res-desc" style="font-size: 14px; line-height: 1.6; opacity: 0.8;"></p>
         </div>
 
-        <div class="control-group">
-            <label>Settings</label>
-            <input type="color" id="colorPicker" value="#000000">
-            <div style="display: flex; justify-content: space-between;">
-                <label>Size</label>
-                <span id="sizeValue" style="font-size: 0.75rem; color: var(--tone-3);">40</span>
-            </div>
-            <input type="range" id="lineWidth" min="10" max="250" value="40" oninput="updateSizeLabel(this.value)">
+        <div class="stats-box">
+            <p id="total-count" class="impact" style="margin-bottom: 15px;"></p>
+            <div id="stat-bars"></div>
         </div>
+        <button class="btn-main impact" style="margin-top: 20px;" onclick="location.reload()">RE-BOOT</button>
+    </div>
+</div>
 
-        <div class="control-group" style="margin-top: auto;">
-            <label>Export</label>
-            <button class="btn-action" onclick="downloadImage('png')">Save as PNG</button>
-            <button class="btn-action" onclick="downloadImage('jpg')">Save as JPG</button>
-            <button class="btn-action" style="border-color: rgba(239, 68, 68, 0.3); color: #ef4444;" onclick="clearCanvas()">Clear Canvas (M)</button>
-        </div>
+<script>
+    const questions = [
+        { title: "한정판 제품이 출시됐다.", options: [{t:"바로 선점하는 게 좋다", v:"A"}, {t:"고민 후 선택한다", v:"B"}, {t:"반응을 보고 결정한다", v:"C"}] },
+        { title: "스타일을 선택할 때", options: [{t:"트렌드를 따른다", v:"A"}, {t:"나만의 기준을 믿는 편이다", v:"B"}, {t:"집단의 흐름을 따른다", v:"C"}] },
+        { title: "소비를 결정할 때", options: [{t:"빠른 반응이 중요하다", v:"A"}, {t:"기준과 취향이 중요하다", v:"B"}, {t:"소속과 관계가 중요하다", v:"C"}] }
+    ];
 
-        <div class="hotkey-info">
-            [ / ] : Adjust Size<br>
-            B / E : Tool Switch<br>
-            M : Reset Canvas
-        </div>
-    </aside>
+    const results = {
+        A: { name: "MAX", punch: "FAST TRACKER", desc: "유행의 정점에서 가장 빠르게 반응합니다. 당신의 선택이 곧 트렌드가 됩니다." },
+        B: { name: "HUGO", punch: "OWN ARCHIVE", desc: "휘둘리지 않는 당신만의 아카이브. 취향은 유행보다 견고합니다." },
+        C: { name: "KRU", punch: "LOYAL CREW", desc: "집단의 에너지가 당신의 스타일을 완성합니다. 함께할 때 가장 강력합니다." }
+    };
 
-    <main class="main-content">
-        <div class="canvas-container">
-            <canvas id="paintCanvas"></canvas>
-            <div id="size-indicator"></div>
-        </div>
-    </main>
+    let step = 0;
+    let score = [];
 
-    <script>
-        const canvas = document.getElementById('paintCanvas');
-        const ctx = canvas.getContext('2d');
-        const colorPicker = document.getElementById('colorPicker');
-        const lineWidth = document.getElementById('lineWidth');
-        const sizeValue = document.getElementById('sizeValue');
-        const brushBtn = document.getElementById('brushBtn');
-        const eraserBtn = document.getElementById('eraserBtn');
-        const indicator = document.getElementById('size-indicator');
-
-        let painting = false;
-        let currentTool = 'brush';
-        let indicatorTimeout;
-
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            const tempImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.putImageData(tempImage, 0, 0);
+    function nextStep() {
+        document.querySelector('.active').classList.remove('active');
+        if(step < 3) {
+            document.getElementById('question').classList.add('active');
+            renderQuestion();
+        } else {
+            renderResult();
         }
+    }
 
-        window.addEventListener('load', resizeCanvas);
-        window.addEventListener('resize', resizeCanvas);
-
-        function showIndicator() {
-            const size = lineWidth.value;
-            indicator.style.width = size + 'px';
-            indicator.style.height = size + 'px';
-            indicator.style.opacity = '1';
-            clearTimeout(indicatorTimeout);
-            indicatorTimeout = setTimeout(() => { indicator.style.opacity = '0'; }, 600);
-        }
-
-        function updateSizeLabel(val) {
-            sizeValue.innerText = val;
-            showIndicator();
-        }
-
-        function setTool(tool) {
-            currentTool = tool;
-            brushBtn.classList.toggle('active', tool === 'brush');
-            eraserBtn.classList.toggle('active', tool === 'eraser');
-        }
-
-        window.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
-            if (key === 'b') setTool('brush');
-            if (key === 'e') setTool('eraser');
-            if (key === 'm') clearCanvas();
-            if (key === '[') {
-                lineWidth.value = Math.max(10, parseInt(lineWidth.value) - 10);
-                updateSizeLabel(lineWidth.value);
-            }
-            if (key === ']') {
-                lineWidth.value = Math.min(250, parseInt(lineWidth.value) + 10);
-                updateSizeLabel(lineWidth.value);
-            }
+    function renderQuestion() {
+        const q = questions[step];
+        document.getElementById('q-num').innerText = `STEP 0${step+1}`;
+        document.getElementById('q-title').innerText = q.title;
+        const optDiv = document.getElementById('options');
+        optDiv.innerHTML = '';
+        q.options.forEach(o => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerHTML = `<span>${o.t}</span><span class="impact">>></span>`;
+            btn.onclick = () => { score.push(o.v); step++; nextStep(); };
+            optDiv.appendChild(btn);
         });
+    }
 
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            return { x: clientX - rect.left, y: clientY - rect.top };
-        }
+    function renderResult() {
+        const final = score.sort((a,b) => score.filter(v => v===a).length - score.filter(v => v===b).length).pop();
+        const data = results[final];
+        document.getElementById('result').classList.add('active');
+        document.getElementById('res-name').innerText = data.name;
+        document.getElementById('res-punch').innerText = data.punch;
+        document.getElementById('res-desc').innerText = data.desc;
 
-        function startPosition(e) {
-            painting = true;
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-            draw(e);
-        }
+        // 통계 업데이트 (로컬 시뮬레이션)
+        let stats = JSON.parse(localStorage.getItem('hb_stats_v2')) || {A:40, B:30, C:30, total:100};
+        stats[final]++; stats.total++;
+        localStorage.setItem('hb_stats_v2', JSON.stringify(stats));
 
-        function finishedPosition() {
-            painting = false;
-            ctx.beginPath();
-        }
-
-        function draw(e) {
-            if (!painting) return;
-            const pos = getPos(e);
-            ctx.lineWidth = lineWidth.value;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            if (currentTool === 'eraser') {
-                ctx.globalCompositeOperation = 'destination-out';
-            } else {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = colorPicker.value;
-            }
-
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        }
-
-        function clearCanvas() {
-            if(confirm("Canvas를 비우시겠습니까?")) {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-        }
-
-        function downloadImage(format) {
-            const link = document.createElement('a');
-            link.download = `ink-export-${Date.now()}.${format}`;
-            link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 0.9);
-            link.click();
-        }
-
-        canvas.addEventListener('mousedown', startPosition);
-        window.addEventListener('mouseup', finishedPosition);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
-        canvas.addEventListener('touchend', finishedPosition);
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
-    </script>
+        document.getElementById('total-count').innerText = `TOTAL FLOW: ${stats.total}`;
+        const barDiv = document.getElementById('stat-bars');
+        barDiv.innerHTML = '';
+        ['A','B','C'].forEach(type => {
+            const p = Math.round((stats[type]/stats.total)*100);
+            const label = type === 'A' ? 'MAX' : type === 'B' ? 'HUGO' : 'KRU';
+            barDiv.innerHTML += `<div class="impact" style="display:flex; justify-content:space-between; font-size:10px;"><span>${label}</span><span>${p}%</span></div>
+                                 <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${p}%"></div></div>`;
+        });
+    }
+</script>
 </body>
 </html>
