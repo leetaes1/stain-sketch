@@ -3,238 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HYPE BEAST TYPE TEST</title>
+    <title>HYPE BEAST : LIVE DATA</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        /* 폰트 및 핵심 컬러 설정 */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
-
-        :root {
-            --hb-blue: #0033FF; /* 패키지 메인 블루 */
-            --hb-bg: #050505;   /* 깊은 블랙 */
-            --hb-text: #F0F0F0; /* 크림 화이트 */
-            --hb-grey: #333333;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background-color: var(--hb-bg);
-            color: var(--hb-text);
-            font-family: 'Inter', -apple-system, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .impact {
-            font-family: 'Impact', sans-serif;
-            text-transform: uppercase;
-            font-style: italic;
-        }
-
-        #app {
-            width: 100%;
-            max-width: 400px;
-            height: 100%;
-            padding: 60px 30px;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid var(--hb-grey);
-            border-right: 1px solid var(--hb-grey);
-        }
-
-        .screen {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
+        :root { --hb-blue: #0033FF; --hb-bg: #050505; --hb-text: #F0F0F0; --hb-grey: #222; }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body { background: var(--hb-bg); color: var(--hb-text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .impact { font-family: 'Impact', sans-serif; text-transform: uppercase; font-style: italic; letter-spacing: -1px; }
+        #app { width: 100%; max-width: 400px; height: 100%; padding: 40px 25px; display: flex; flex-direction: column; border-left: 1px solid var(--hb-grey); border-right: 1px solid var(--hb-grey); position: relative; }
+        .screen { display: none; flex-direction: column; height: 100%; animation: slideUp 0.4s ease-out forwards; }
         .screen.active { display: flex; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 메인 로고 영역 */
-        .logo-area { margin-bottom: 60px; }
-        .main-title {
-            font-size: 72px;
-            line-height: 0.85;
-            color: var(--hb-blue);
-            margin-bottom: 10px;
-        }
-        .star-graphic {
-            fill: var(--hb-blue);
-            width: 80px;
-            margin-top: 5px;
-        }
-
-        /* 버튼 및 인터랙션 */
-        .btn-option {
-            background: none;
-            border: 1px solid var(--hb-grey);
-            color: var(--hb-text);
-            padding: 20px;
-            margin-bottom: 15px;
-            text-align: left;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-option:hover {
-            border-color: var(--hb-blue);
-            background: var(--hb-blue);
-        }
-
-        .btn-main {
-            background: var(--hb-blue);
-            color: white;
-            border: none;
-            padding: 25px;
-            font-size: 20px;
-            cursor: pointer;
-            margin-top: auto;
-        }
-
-        /* 결과 화면 특화 */
-        .result-card {
-            border: 2px solid var(--hb-blue);
-            padding: 30px;
-            margin: 20px 0;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .stats-box {
-            background: #111;
-            padding: 20px;
-            font-size: 12px;
-            border-top: 1px solid var(--hb-grey);
-        }
-
-        .stat-bar-container {
-            height: 4px;
-            background: var(--hb-grey);
-            margin: 8px 0 15px 0;
-        }
-
-        .stat-bar-fill {
-            height: 100%;
-            background: var(--hb-blue);
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .main-title { font-size: 72px; line-height: 0.85; color: var(--hb-blue); margin-bottom: 10px; }
+        .star-svg { fill: var(--hb-blue); width: 80px; margin-bottom: 40px; }
+        .btn-opt { background: none; border: 1px solid var(--hb-grey); color: var(--hb-text); padding: 22px; margin-bottom: 12px; text-align: left; font-size: 15px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; }
+        .btn-opt:hover { background: var(--hb-blue); border-color: var(--hb-blue); }
+        .stats-wrap { background: #111; padding: 25px; border: 1px solid var(--hb-grey); margin-top: auto; }
+        .total-counter { font-size: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--hb-grey); padding-bottom: 10px; }
+        .stat-item { margin-bottom: 15px; }
+        .stat-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; color: #888; }
+        .stat-info .val { color: var(--hb-blue); font-weight: 900; }
+        .progress-bg { height: 6px; background: #222; }
+        .progress-fill { height: 100%; background: var(--hb-blue); width: 0%; transition: width 1s ease-out; }
+        .btn-main { background: var(--hb-blue); color: #fff; border: none; padding: 22px; font-size: 18px; cursor: pointer; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="intro" class="screen active">
-        <div class="logo-area">
-            <h1 class="main-title impact">HYPE<br>BEAST</h1>
-            <svg class="star-graphic" viewBox="0 0 100 20">
-                <polygon points="10,0 12,7 20,7 14,12 16,20 10,15 4,20 6,12 0,7 8,7" />
-                <polygon points="40,0 42,7 50,7 44,12 46,20 40,15 34,20 36,12 30,7 38,7" />
-                <polygon points="70,0 72,7 80,7 74,12 76,20 70,15 64,20 66,12 60,7 68,7" />
-            </svg>
-        </div>
-        <p style="letter-spacing: 2px; font-size: 13px; opacity: 0.7;">CONSUMPTION TYPE TEST</p>
-        <button class="btn-main impact" onclick="nextStep()">START</button>
+        <h1 class="main-title impact">HYPE<br>BEAST</h1>
+        <svg class="star-svg" viewBox="0 0 100 20"><polygon points="10,0 12,7 20,7 14,12 16,20 10,15 4,20 6,12 0,7 8,7"/><polygon points="40,0 42,7 50,7 44,12 46,20 40,15 34,20 36,12 30,7 38,7"/><polygon points="70,0 72,7 80,7 74,12 76,20 70,15 64,20 66,12 60,7 68,7"/></svg>
+        <button class="btn-main impact" onclick="goNext()">INITIATE TEST</button>
     </div>
 
     <div id="question" class="screen">
-        <p id="q-num" class="impact" style="color: var(--hb-blue); margin-bottom: 10px;">STEP 01</p>
-        <h2 id="q-title" style="font-size: 24px; margin-bottom: 40px; word-break: keep-all;">질문 내용</h2>
-        <div id="options"></div>
+        <p id="step-tag" class="impact" style="color: var(--hb-blue); margin-bottom: 10px;"></p>
+        <h2 id="q-text" style="font-size: 24px; margin-bottom: 40px; font-weight: 900;"></h2>
+        <div id="opt-box"></div>
     </div>
 
     <div id="result" class="screen">
-        <p class="impact" style="font-size: 14px; color: var(--hb-blue);">IDENTITY CONFIRMED</p>
-        <h1 id="res-name" class="impact" style="font-size: 50px; margin: 10px 0;">TYPE</h1>
+        <p class="impact" style="color: var(--hb-blue);">IDENTIFICATION COMPLETE</p>
+        <h1 id="res-type" class="impact" style="font-size: 60px; margin: 10px 0;">TYPE</h1>
         
-        <div class="result-card">
-            <p id="res-punch" style="font-size: 18px; font-weight: 900; margin-bottom: 15px; color: var(--hb-blue);"></p>
-            <p id="res-desc" style="font-size: 14px; line-height: 1.6; opacity: 0.8;"></p>
+        <div class="stats-wrap">
+            <div class="total-counter impact">TOTAL FLOW : <span id="total-val" style="color:var(--hb-blue)">0</span></div>
+            <div id="stat-list">
+                <div class="stat-item">
+                    <div class="stat-info impact"><span>FAST (MAX)</span><span class="val" id="val-A">0%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" id="bar-A"></div></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-info impact"><span>OWN (HUGO)</span><span class="val" id="val-B">0%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" id="bar-B"></div></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-info impact"><span>CREW (KRU)</span><span class="val" id="val-C">0%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" id="bar-C"></div></div>
+                </div>
+            </div>
         </div>
-
-        <div class="stats-box">
-            <p id="total-count" class="impact" style="margin-bottom: 15px;"></p>
-            <div id="stat-bars"></div>
-        </div>
-        <button class="btn-main impact" style="margin-top: 20px;" onclick="location.reload()">RE-BOOT</button>
+        <button class="btn-main impact" onclick="location.reload()">RE-BOOT SYSTEM</button>
     </div>
 </div>
 
 <script>
-    const questions = [
-        { title: "한정판 제품이 출시됐다.", options: [{t:"바로 선점하는 게 좋다", v:"A"}, {t:"고민 후 선택한다", v:"B"}, {t:"반응을 보고 결정한다", v:"C"}] },
-        { title: "스타일을 선택할 때", options: [{t:"트렌드를 따른다", v:"A"}, {t:"나만의 기준을 믿는 편이다", v:"B"}, {t:"집단의 흐름을 따른다", v:"C"}] },
-        { title: "소비를 결정할 때", options: [{t:"빠른 반응이 중요하다", v:"A"}, {t:"기준과 취향이 중요하다", v:"B"}, {t:"소속과 관계가 중요하다", v:"C"}] }
+    // 1. 여기에 본인의 Firebase 프로젝트 설정을 입력하세요
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const db = [
+        { q: "한정판 제품이 출시됐다.", a: [{t:"바로 선점한다", v:"A"}, {t:"충분히 고민한다", v:"B"}, {t:"반응을 살핀다", v:"C"}] },
+        { q: "스타일 결정의 기준은?", a: [{t:"최신 트렌드", v:"A"}, {t:"나만의 아카이브", v:"B"}, {t:"크루의 정체성", v:"C"}] },
+        { q: "가장 중요한 가치는?", a: [{t:"속도와 혁신", v:"A"}, {t:"취향과 고집", v:"B"}, {t:"유대와 소속", v:"C"}] }
     ];
 
-    const results = {
-        A: { name: "MAX", punch: "FAST TRACKER", desc: "유행의 정점에서 가장 빠르게 반응합니다. 당신의 선택이 곧 트렌드가 됩니다." },
-        B: { name: "HUGO", punch: "OWN ARCHIVE", desc: "휘둘리지 않는 당신만의 아카이브. 취향은 유행보다 견고합니다." },
-        C: { name: "KRU", punch: "LOYAL CREW", desc: "집단의 에너지가 당신의 스타일을 완성합니다. 함께할 때 가장 강력합니다." }
-    };
-
     let step = 0;
-    let score = [];
+    let picks = [];
 
-    function nextStep() {
-        document.querySelector('.active').classList.remove('active');
-        if(step < 3) {
+    function goNext() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        if (step < 3) {
             document.getElementById('question').classList.add('active');
-            renderQuestion();
+            const data = db[step];
+            document.getElementById('step-tag').innerText = `DATA INGESTION 0${step+1}`;
+            document.getElementById('q-text').innerText = data.q;
+            const box = document.getElementById('opt-box');
+            box.innerHTML = '';
+            data.a.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'btn-opt';
+                b.innerHTML = `<span>${opt.t}</span><span class="impact">>></span>`;
+                b.onclick = () => { picks.push(opt.v); step++; goNext(); };
+                box.appendChild(b);
+            });
         } else {
-            renderResult();
+            submitAndShow();
         }
     }
 
-    function renderQuestion() {
-        const q = questions[step];
-        document.getElementById('q-num').innerText = `STEP 0${step+1}`;
-        document.getElementById('q-title').innerText = q.title;
-        const optDiv = document.getElementById('options');
-        optDiv.innerHTML = '';
-        q.options.forEach(o => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-option';
-            btn.innerHTML = `<span>${o.t}</span><span class="impact">>></span>`;
-            btn.onclick = () => { score.push(o.v); step++; nextStep(); };
-            optDiv.appendChild(btn);
+    async function submitAndShow() {
+        const final = picks.sort((a,b) => picks.filter(v=>v===a).length - picks.filter(v=>v===b).length).pop();
+        document.getElementById('result').classList.add('active');
+        document.getElementById('res-type').innerText = final === 'A' ? 'MAX' : final === 'B' ? 'HUGO' : 'KRU';
+
+        // 2. Firebase 데이터 업데이트
+        const statsRef = database.ref('stats');
+        await statsRef.transaction((current) => {
+            if (!current) current = { A: 0, B: 0, C: 0, total: 0 };
+            current[final]++;
+            current.total++;
+            return current;
+        });
+
+        // 3. 최신 데이터 가져와서 0부터 애니메이션 실행
+        statsRef.once('value', (snapshot) => {
+            const data = snapshot.val();
+            animateResults(data);
         });
     }
 
-    function renderResult() {
-        const final = score.sort((a,b) => score.filter(v => v===a).length - score.filter(v => v===b).length).pop();
-        const data = results[final];
-        document.getElementById('result').classList.add('active');
-        document.getElementById('res-name').innerText = data.name;
-        document.getElementById('res-punch').innerText = data.punch;
-        document.getElementById('res-desc').innerText = data.desc;
+    function animateResults(data) {
+        // 숫자가 0에서 실제 합산된 결과까지 올라감
+        let count = 0;
+        const totalVal = document.getElementById('total-val');
+        const interval = setInterval(() => {
+            count++;
+            totalVal.innerText = count;
+            if (count >= data.total) clearInterval(interval);
+        }, 20);
 
-        // 통계 업데이트 (로컬 시뮬레이션)
-        let stats = JSON.parse(localStorage.getItem('hb_stats_v2')) || {A:40, B:30, C:30, total:100};
-        stats[final]++; stats.total++;
-        localStorage.setItem('hb_stats_v2', JSON.stringify(stats));
-
-        document.getElementById('total-count').innerText = `TOTAL FLOW: ${stats.total}`;
-        const barDiv = document.getElementById('stat-bars');
-        barDiv.innerHTML = '';
-        ['A','B','C'].forEach(type => {
-            const p = Math.round((stats[type]/stats.total)*100);
-            const label = type === 'A' ? 'MAX' : type === 'B' ? 'HUGO' : 'KRU';
-            barDiv.innerHTML += `<div class="impact" style="display:flex; justify-content:space-between; font-size:10px;"><span>${label}</span><span>${p}%</span></div>
-                                 <div class="stat-bar-container"><div class="stat-bar-fill" style="width:${p}%"></div></div>`;
+        ['A', 'B', 'C'].forEach(t => {
+            const perc = Math.round((data[t] / data.total) * 100);
+            document.getElementById(`bar-${t}`).style.width = perc + '%';
+            document.getElementById(`val-${t}`).innerText = perc + '%';
         });
     }
 </script>
